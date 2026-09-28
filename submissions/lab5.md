@@ -654,7 +654,7 @@ architectures → tags rewritten in Git by CI → ArgoCD syncs → pods replaced
 
 | What | Result |
 |---|---|
-| CI runs | 6 pushes, 5 executed, 1 correctly skipped, 0 failures |
+| CI runs | 8 triggered — 7 green, 1 correctly skipped, 0 failures; the bot's own commit triggered none |
 | Images | 3 services × `linux/amd64` + `linux/arm64`, tagged by commit SHA |
 | Detection latency (push → ArgoCD acts) | 141 s / 197 s / 324 s — all one 180 s poll window |
 | Rollback via `git revert` | 211 s, zero downtime |
