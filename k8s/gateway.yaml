@@ -21,7 +21,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/r3v1k/quickticket-gateway:dd50f70a6a33cb14d8ec0294cd52ba2b35ea5301
+          image: ghcr.io/r3v1k/quickticket-gateway:2fed1f97e33a71a3e82bf86af17117b5fe257691
           imagePullPolicy: Always
           env:
             - name: EVENTS_URL
