@@ -12,7 +12,9 @@ env:
 jobs:
   build:
     # Skip the commit this workflow pushes itself, or it would trigger itself forever.
-    if: "!startsWith(github.event.head_commit.message, 'ci: update image tags')"
+    # Keyed on the author, not the message: a human commit whose subject happens to
+    # start with "ci: update image tags" would otherwise silently skip its own build.
+    if: github.event.head_commit.author.name != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
