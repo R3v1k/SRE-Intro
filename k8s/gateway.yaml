@@ -15,10 +15,12 @@ spec:
       labels:
         app: gateway
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: gateway
-          image: quickticket-gateway:v1
-          imagePullPolicy: Never
+          image: ghcr.io/r3v1k/quickticket-gateway:dd50f70a6a33cb14d8ec0294cd52ba2b35ea5301
+          imagePullPolicy: Always
           env:
             - name: EVENTS_URL
               value: "http://events:8081"
