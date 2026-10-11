@@ -1,3 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,6 +16,10 @@ metadata:
     app: postgres
 spec:
   replicas: 1
+  # RWO volume: the old pod must be gone before the new one mounts the same
+  # PGDATA, otherwise a RollingUpdate briefly runs two postmasters on one dir.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: postgres
@@ -24,6 +38,11 @@ spec:
               value: "quickticket"
             - name: POSTGRES_PASSWORD
               value: "quickticket"
+            - name: PGDATA                      # subdir — avoid lost+found at the mount root
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
           ports:
             - containerPort: 5432
           resources:
@@ -33,6 +52,10 @@ spec:
             limits:
               cpu: 200m
               memory: 256Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
 ---
 apiVersion: v1
 kind: Service
