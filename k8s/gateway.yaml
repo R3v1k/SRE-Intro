@@ -35,6 +35,18 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-secret
+      # Room for the 10 s preStop sleep plus up to 30 s of in-flight drain after SIGTERM.
+      terminationGracePeriodSeconds: 40
+      # Spread gateway pods across nodes: the per-node pod count may differ by at
+      # most 1 (5 pods on 3 nodes → 2/2/1). ScheduleAnyway = preference, so a
+      # single-node cluster (k3d here) still schedules all pods instead of Pending.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
       containers:
         - name: gateway
           image: quickticket-gateway:lab11-1   # built locally, `k3d image import`
@@ -80,8 +92,17 @@ spec:
             httpGet:
               path: /health
               port: 8080
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2
+            failureThreshold: 1
+          lifecycle:
+            # Keep serving for 10 s after the pod is marked Terminating. The
+            # endpoints controller removes a terminating pod from the Service at
+            # once, but kube-proxy needs a moment to update every node's rules;
+            # SIGTERM reaches uvicorn only after that, so no new connection is
+            # sent to a socket that is already closed.
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           resources:
             requests:
               cpu: 50m
