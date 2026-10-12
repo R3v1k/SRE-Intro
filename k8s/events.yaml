@@ -5,7 +5,7 @@ metadata:
   labels:
     app: events
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: events
@@ -18,8 +18,8 @@ spec:
         - name: ghcr-secret
       containers:
         - name: events
-          image: ghcr.io/r3v1k/quickticket-events:2fed1f97e33a71a3e82bf86af17117b5fe257691
-          imagePullPolicy: Always
+          image: quickticket-events:lab12-b   # Lab 12 bonus build (reads scheduled_at only), `k3d image import`
+          imagePullPolicy: IfNotPresent
           env:
             - name: DB_HOST
               value: "postgres"
@@ -41,6 +41,13 @@ spec:
               value: "1000"
             - name: RESERVATION_TTL
               value: "300"
+          lifecycle:
+            # Let kube-proxy and the gateway's keep-alive connections move off
+            # this pod before SIGTERM. Without it, the Lab 12 bonus Deploy A lost
+            # two /pay confirmations when the old events pods stopped.
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
           ports:
             - containerPort: 8081
           livenessProbe:
